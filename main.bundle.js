@@ -493,7 +493,7 @@ var UtilService = (function () {
                 return "assets/batt1.png";
             }
             else if (battery >= 35 && battery < 60) {
-                return "../assets/batt2.png";
+                return "assets/batt2.png";
             }
             else if (battery >= 60 && battery < 85) {
                 return "assets/batt3.png";
