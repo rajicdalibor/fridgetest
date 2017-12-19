@@ -597,7 +597,6 @@ var BluetoothLEScan = function (webBluetoothObj, g, isFiltering, scanOptions, ev
         var foundPeripheral = peripheral;
         var peripheralExists = false;
         for(var key in storedDevices) {
-        for(var key in storedDevices) {
             if(key == foundPeripheral.uuid){
                 peripheralExists = true;
             }
