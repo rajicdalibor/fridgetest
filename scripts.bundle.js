@@ -32,7 +32,7 @@ function BluVolt(bluetooth) {
                         return;
                     }
                     const voltage = data.getFloat32(4);
-                    const doorOpened = (voltage > 0.5);
+                    const doorOpened = (voltage < 0.5);
 
                     //console.log(event.device.uuid, hexData);
                     self.emit('data', {
@@ -44,13 +44,25 @@ function BluVolt(bluetooth) {
                 });
             })
             .catch(error => {
-                self.emit("error", error)
+                self.emit("disconnected", error);
+                setTimeout(self.scan, 1000);
+
             });
     };
+    this.stop = _ => {
+
+    };
+
+    this.connect = _ => {
+
+    };
+
     bluetooth.addEventListener('availabilitychanged', function (e) {
-        console.log("BluVolt: GW Available:", e.value);
+        console.log("GW Available BluVolt:", e.value);
         if (e.value === false) {
             self.emit('disconnected', "BluVolt Gateway link lost");
+        } else {
+            setTimeout(self.scan, 1000);
         }
     });
 }
@@ -58,8 +70,7 @@ function BluVolt(bluetooth) {
 nodeUtil.inherits(BluVolt, EventEmitter);
 module.exports.BluVolt = BluVolt;
 
-},{"./util":5,"events":"events","util":"util"}],2:[function(require,module,exports){
-  "use strict";
+},{"./util":6,"events":"events","util":"util"}],2:[function(require,module,exports){
 const util = require('util');
 const EventEmitter = require('events').EventEmitter;
 
@@ -67,11 +78,12 @@ const utilFunctions = require('./util');
 const PlayBulb = require('./playbulb-smart-bulb').PlayBulb;
 const RevogiSmartMeter = require('./revogi-smart-meter').RevogiSmartMeter;
 const BluVolt = require('./bluvolt').BluVolt;
+const SmartShelf = require('./smartshelf').SmartShelf;
 
 const VisibleThings = require('./visible-things').VisibleThings;
 
 function createWb(_config, extras) {
-    var config = _config;
+    let config = _config;
     if (extras) {
         config = {};
         Object.assign(_config, extras);
@@ -84,8 +96,6 @@ function createWb(_config, extras) {
 
 function SmartFridge(config) {
     EventEmitter.call(this);
-    var rgb = {};
-
     const self = this;
     if (!config) {
         config = {};
@@ -100,70 +110,46 @@ function SmartFridge(config) {
         config.fridgeDevices = {};
     }
 
-
-
-    function handleError(error) {
-        if (error.message && error.message.indexOf('Timed out') >= 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    function handleConnectable(device, eventName) {
+    function handleDeivce(device, devName) {
+        //const device = createFunc();
         device.on('error', error => {
             device.removeAllListeners();
             device.stop();
-            setTimeout(_ => {handleConnectable(device);}, 3000);
+            setTimeout(_ => {handleDeivce(device, devName);}, 3000);
+            console.error(devName + " Error: ", error.message);
             self.emit('error', error)
         });
         device.on('data', event => {
-            self.emit(eventName, event);
+            self.emit(devName + 'Data', event);
         });
-        device.on('disconnected', target => {
-            console.log(target, 'disconnected');
+        device.once('disconnected', error => {
+            console.log(devName + ' Disconnected.');
+            device.removeAllListeners();
+            device.stop();
+            setTimeout(_ => {
+                handleDeivce(device, devName)
+            }, 1000);
         });
         return device;
     }
 
-    function handleScannable(scanner, eventName) {
-        scanner.on('error', error => {
-            scanner.removeAllListeners();
-            setTimeout(_ => {handleScannable(scanner);}, 3000);
-            self.emit('error', error);
-        });
-        scanner.on('data', event => {
-            self.emit(eventName, event);
-        });
-        scanner.on('disconnected', target => {
-            console.log(target, 'disconnected');
-            scanner.removeAllListeners();
-            setTimeout(_ => {
-                handleScannable(scanner)
-            }, 1000);
-        });
-        scanner.scan();
-        return scanner;
-    }
-
-    var smartBulb;
+    let smartBulb;
     if (true === config.fridgeDevices.bulb) {
-        smartBulb = handleConnectable(new PlayBulb(createWb(config)), 'bulbData');
-        smartBulb.on('data', _ => {
-            smartBulb.setRgb(rgb);
-        });
+        smartBulb = handleDeivce(new PlayBulb(createWb(config)), 'bulb');
     }
     if (true === config.fridgeDevices.meter) {
-        handleConnectable(new RevogiSmartMeter(createWb(config)), 'powerData');
+        handleDeivce(new RevogiSmartMeter(createWb(config)), 'power');
     }
     if (true === config.fridgeDevices.door) {
-        handleScannable(new BluVolt(createWb(config)), 'doorData');
+        handleDeivce(new BluVolt(createWb(config)), 'door');
     }
     if (true === config.fridgeDevices.shelf) {
-        handleScannable(new VisibleThings(createWb(config)), 'shelfData');
+        handleDeivce(new VisibleThings(createWb(config)), 'shelf');
+        handleDeivce(new SmartShelf(createWb(config)), 'shelf');
     }
 
     this.setBulbColor = (color) => {
+        let rgb;
         if (typeof color === 'string') {
             if (color.startsWith('#')) {
                 color = color.substring(1);
@@ -177,6 +163,7 @@ function SmartFridge(config) {
         } else {
             rgb = color;
         }
+        smartBulb.setRgb(rgb);
     }
 }
 
@@ -186,8 +173,7 @@ module.exports.SmartFridge = SmartFridge;
   if(typeof window === 'object'){
     window.SmartFridge = SmartFridge;
   }
-
-},{"./bluvolt":1,"./playbulb-smart-bulb":3,"./revogi-smart-meter":4,"./util":5,"./visible-things":6,"blueapp-wb":12,"events":"events","util":"util"}],3:[function(require,module,exports){
+},{"./bluvolt":1,"./playbulb-smart-bulb":3,"./revogi-smart-meter":4,"./smartshelf":5,"./util":6,"./visible-things":7,"blueapp-wb":13,"events":"events","util":"util"}],3:[function(require,module,exports){
 const util = require('util');
 const EventEmitter = require('events').EventEmitter;
 
@@ -201,16 +187,16 @@ const CANDLE_COLOR_UUID = 0xFFFC;
 function PlayBulb(bluetooth, intervalMs) {
     EventEmitter.call(this);
     const self = this;
-    var idleToggle = false; // vary the value a bit to maintain connection
-    var rgb;
-    var pollTask;
+    let idleToggle = false; // vary the value a bit to maintain connection
+    let rgb;
+    let pollTask;
 
     this.setRgb = newRgb => {
         rgb = new Uint8Array([0, newRgb.r, newRgb.g, newRgb.b]);
     };
 
     const connect = pollIntervalMs => {
-        var connectedTime = new Date().getTime();
+        let connectedTime = new Date().getTime();
         self.lightColorCharacteristic = undefined;
         self.powerStatus = undefined;
 
@@ -222,7 +208,7 @@ function PlayBulb(bluetooth, intervalMs) {
             filters: [{services: [CANDLE_SERVICE_UUID]}]
         };
 
-        var device;
+        let device;
         return bluetooth.requestDevice(options)
             .then(_device => {
                 device = _device;
@@ -251,7 +237,8 @@ function PlayBulb(bluetooth, intervalMs) {
                                 .catch(error => {
                                     if (device.gatt.connected) {
                                         console.warn("Characteristic Write Error");
-                                        self.emit("error", error);
+                                        self.emit("disconnected", error);
+                                        setTimeout(connect, 1000);
                                     }
                                 });
                         };
@@ -280,11 +267,12 @@ function PlayBulb(bluetooth, intervalMs) {
                             .catch(error => {
                                 if (device.gatt.connected) {
                                     console.warn("Characteristic Read Error");
-                                    self.emit("error", error);
+                                    self.emit("disconnected", error);
+                                    setTimeout(connect, 1000);
                                 }
                             });
                         if (rgb) {
-                            var writeVal = rgb;
+                            let writeVal = rgb;
                             idleToggle = !idleToggle;
                             if (idleToggle) {
                                 const offset = writeVal[1] < 2 ? 2 : -2;
@@ -294,17 +282,20 @@ function PlayBulb(bluetooth, intervalMs) {
                             // These writes will keep the connection up
                             characteristic.writeValue(writeVal)
                                 .then(_ => {
-                                    console.log("Wrote", writeVal);
+                                    //console.log("Wrote", writeVal);
                                 })
                                 .catch(error => {
                                     if (device.gatt.connected) {
                                         console.warn("Characteristic Write Error");
-                                        self.emit("error", error);
+                                        self.emit("disconnected", error);
+                                        setTimeout(connect, 1000);
+
                                     }
                                 });
                         }
                     } catch (e) {
-                        self.emit("error", e);
+                        self.emit("disconnected", e);
+                        setTimeout(connect, 1000);
                     }
                 }
 
@@ -321,22 +312,22 @@ function PlayBulb(bluetooth, intervalMs) {
             .catch(error => {
                 const msg = error.message;
                 if (msg && (msg.indexOf('Device could not be connected') >= 0 || msg.indexOf('evice is disconnected while discovering services') >= 0)) {
-                    console.warn("PlayBulb: BT Disconnect Error", error);
-                    self.emit('disconnected', 'PlayBulb could not connect');
+                    console.warn("PlayBulb: BT Could not connect.");
                 } else {
                     console.warn("PlayBulb: BT Error", error);
-                    self.emit("error", error)
                 }
+                setTimeout(connect, 10);
             });
     };
-    this.stop = () => {
+    this.stop = _ => {
+        //bluetooth.gattip.close();
         if (pollTask) {
             clearTimeout(pollTask);
             pollTask = undefined;
         }
     };
     bluetooth.addEventListener('availabilitychanged', function (e) {
-        console.log("PlayBulb: GW Available:", e.value);
+        console.log("GW Available PlayBulb:", e.value);
         if (e.value === false) {
             self.stop();
             self.emit('disconnected', 'PlayBulb Gateway link lost');
@@ -349,7 +340,6 @@ function PlayBulb(bluetooth, intervalMs) {
 util.inherits(PlayBulb, EventEmitter);
 module.exports.PlayBulb = PlayBulb;
 },{"events":"events","util":"util"}],4:[function(require,module,exports){
-const util = require('./util');
 const nodeUtil = require('util');
 const EventEmitter = require('events').EventEmitter;
 
@@ -365,12 +355,12 @@ const NOTIFY_CHAR_UUID = 0xFFF4;
 function RevogiSmartMeter(bluetooth, intervalMs) {
     EventEmitter.call(this);
     const self = this;
-    var idleToggle = false; // vary the value a bit to maintain connection
-    var pollTask;
+    let idleToggle = false; // vary the value a bit to maintain connection
+    let pollTask;
 
 
     const connect = pollIntervalMs => {
-        var connectedTime = new Date().getTime();
+        let connectedTime = new Date().getTime();
         self.lightColorCharacteristic = undefined;
         self.powerStatus = undefined;
 
@@ -385,9 +375,9 @@ function RevogiSmartMeter(bluetooth, intervalMs) {
             }]
         };
 
-        var device;
-        var service;
-        var infoChar;
+        let device;
+        let service;
+        let infoChar;
         return bluetooth.requestDevice(options)
             .then(_device => {
                 device = _device;
@@ -409,7 +399,7 @@ function RevogiSmartMeter(bluetooth, intervalMs) {
             .then(characteristic => {
                 characteristic.startNotifications();
                 characteristic.addEventListener('characteristicvaluechanged', event => {
-                    var value = event.target.value;
+                    let value = event.target.value;
                     //const hexData = util.toHex(value);
                     //console.log(hexData);
                     if (value.getUint32(0) === 0x0f0f0400) {
@@ -449,18 +439,20 @@ function RevogiSmartMeter(bluetooth, intervalMs) {
                                     .catch(error => {
                                         if (device.gatt.connected) {
                                             console.warn("Characteristic Read Error");
-                                            self.emit("error", error);
+                                            self.emit("disconnected", error);
                                         }
                                     })
                             )
                             .catch(error => {
                                 if (device.gatt.connected) {
                                     console.warn("Characteristic Write Error");
-                                    self.emit("error", error);
+                                    self.emit("disconnected", error);
+                                    setTimeout(connect, 1000);
                                 }
                             });
                     } catch (e) {
-                        self.emit("error", e);
+                        self.emit("disconnected", e);
+                        setTimeout(connect, 1000);
                     }
                 }
 
@@ -476,22 +468,22 @@ function RevogiSmartMeter(bluetooth, intervalMs) {
             .catch(error => {
                 const msg = error.message;
                 if (msg && (msg.indexOf('Device could not be connected') >= 0 || msg.indexOf('evice is disconnected while discovering services') >= 0)) {
-                    console.warn("Revogi Smart Meter: BT Disconnect Error", error);
-                    self.emit('disconnected', '"Revogi Smart Meter could not connect');
+                    console.warn("Revogi Smart Meter: BT Could not connect");
                 } else {
                     console.warn("Revogi Smart Meter: BT Error", error);
                     self.emit("error", error)
                 }
+                setTimeout(connect, 10);
             });
     };
-    this.stop = () => {
+    this.stop = _ => {
         if (pollTask) {
             clearTimeout(pollTask);
             pollTask = undefined;
         }
     };
     bluetooth.addEventListener('availabilitychanged', function (e) {
-        console.log("Revogi Smart Meter: GW Available:", e.value);
+        console.log("GW Available Revogi Smart Meter:", e.value);
         if (e.value === false) {
             self.stop();
             self.emit('disconnected', 'Revogi Gateway link lost');
@@ -503,12 +495,119 @@ function RevogiSmartMeter(bluetooth, intervalMs) {
 
 nodeUtil.inherits(RevogiSmartMeter, EventEmitter);
 module.exports.RevogiSmartMeter = RevogiSmartMeter;
-},{"./util":5,"events":"events","util":"util"}],5:[function(require,module,exports){
+},{"events":"events","util":"util"}],5:[function(require,module,exports){
+const nodeUtil = require('util');
+const EventEmitter = require('events').EventEmitter;
+const util = require('./util');
+
+var simulatedBatteryChargeLastReport = 100;
+var simulatedBatteryCharge = {};
+
+function SmartShelf(bluetooth) {
+    EventEmitter.call(this);
+    const self = this;
+    this.scan = () => {
+        const options = {
+            filters: [{
+                manufacturerData: {
+                    0x02F4: {
+                        dataPrefix: new Uint8Array([
+                            0xBA, 0xC1, // Major/Minor.
+                            0x01, // Device ID = SmartShelf
+                        ])
+                    }
+                }
+            }]
+        };
+
+        bluetooth.requestLEScan(options)
+            .then(() => {
+                bluetooth.addEventListener('advertisementreceived', event => {
+                    let data = event.manufacturerData.get(0x02F4);
+                    const hexData = util.toHex(data);
+                    function cutFront(dataView, nBytes) {
+                        return new DataView(data.buffer.slice(nBytes, data.buffer.byteLength));
+                    }
+                    data = cutFront(data, 3);
+                    let weightLbs  = -1.0;
+                    let tempC  = -200.0;
+                    while (data.buffer.byteLength > 0) {
+                        const dataType = data.getUint8(0);
+                        data = cutFront(data, 1);
+                        let bytesConsumed = data.buffer.byteLength;
+                        switch (dataType) {
+                            case 0x01: // weight
+                                const weightData = data.getUint16(0);
+                                //const weightData = 0x3FFF;
+                                const weightKg =  weightData * 10.0 / (Math.pow(2, 14));
+                                weightLbs = weightData === 0x3FFF ? -1.0 : weightKg * 2.2046226;
+                                bytesConsumed = 2;
+                                break;
+                            case 0x04: // temp
+                                const tempData = data.getUint16(0);
+                                tempC = tempData >> 2;
+                                if ((tempData & 0x8000) > 0) {
+                                    // negative value
+                                    tempC = tempC ^ 0x3FFF;
+                                }
+                                tempC = tempC  * 0.03125;
+                                bytesConsumed = 2;
+                                break;
+                            default:
+                                console.warn("SmartShelf: Unknown data type encountered", dataType);
+                                data = cutFront(data, data.buffer.byteLength);
+                                break;
+                        }
+                        data = cutFront(data, bytesConsumed);
+                    }
+                    if (!simulatedBatteryCharge[event.device.id]) {
+                        simulatedBatteryCharge[event.device.id] = simulatedBatteryChargeLastReport;
+                        simulatedBatteryChargeLastReport = simulatedBatteryChargeLastReport- 15;
+                    }
+                    self.emit('data', {
+                        hexData: hexData,
+                        bufferData: data.buffer,
+                        id: event.device.id,
+                        weightLbs: weightLbs.toFixed(4),
+                        tempC: (tempC).toFixed(4),
+                        humidityRh: Math.abs(Math.sin(Math.PI / (tempC % 100)) * 100.0).toFixed(1),
+                        battery: simulatedBatteryCharge[event.device.id]
+                    });
+                });
+            })
+            .catch(error => {
+                self.emit("disconnected", error);
+                setTimeout(self.scan, 1000);
+
+            });
+    };
+    this.stop = _ => {
+
+    };
+
+    this.connect = _ => {
+
+    };
+
+    bluetooth.addEventListener('availabilitychanged', function (e) {
+        console.log("GW Available SmartShelf:", e.value);
+        if (e.value === false) {
+            self.emit('disconnected', "SmartShelf Gateway link lost");
+        } else {
+            setTimeout(self.scan, 1000);
+        }
+    });
+}
+
+nodeUtil.inherits(SmartShelf, EventEmitter);
+module.exports.SmartShelf = SmartShelf;
+
+},{"./util":6,"events":"events","util":"util"}],6:[function(require,module,exports){
 module.exports.toHex = (data) => {
     const arrData = new Uint8Array(data.buffer);
-    var hexData = '';
-    for (var i = 0; i < arrData.length; i++) {
-        var hex = arrData[i].toString(16);
+    let hexData = '';
+    for (let i = 0; i < arrData.length; i++) {
+        let hex = arrData[i].toString(16);
         if (hex.length === 1) {
             hex = '0' + hex;
         }
@@ -518,12 +617,12 @@ module.exports.toHex = (data) => {
 };
 module.exports.hexAsArray = (hex) => {
     const bytes = [];
-    for (var i = 0; i < hex.length - 1; i += 2) {
+    for (let i = 0; i < hex.length - 1; i += 2) {
         bytes.push(parseInt(hex.substr(i, 2), 16));
     }
     return bytes;
 };
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 const nodeUtil = require('util');
 const EventEmitter = require('events').EventEmitter;
 const util = require('./util');
@@ -551,24 +650,36 @@ function VisibleThings(bluetooth) {
                         id: event.device.id,
                         tempC: Math.sin(Math.PI / (timePassedS % 100) + 20.0).toFixed(2),
                         humidityRh: Math.abs(Math.sin(Math.PI / (timePassedS % 100)) * 100.0).toFixed(1),
-                        adcVoltage: (Math.random() * 3.3).toFixed(2),
                         weightLbs: (Math.random() * 5).toFixed(1),
                         battery : 100 - timePassedS < 0 ? 0 : (100 - timePassedS).toFixed(0)
                     });
                 });
             })
-            .catch(error => {self.emit("error", error)});
+            .catch(error => {
+                self.emit("disconnected", error);
+                setTimeout(self.scan, 1000);
+            });
     };
+    this.connect = _ => {
+
+    };
+
+    this.stop = _ => {
+
+    };
+
     bluetooth.addEventListener('availabilitychanged', function (e) {
-        console.log("VisibleThings: GW Available:", e.value);
+        console.log("GW Available VisibleThings:", e.value);
         if (e.value === false) {
             self.emit('disconnected', "VT Gateway link lost");
+        } else {
+            setTimeout(self.scan, 1000);
         }
     });
 }
 nodeUtil.inherits(VisibleThings, EventEmitter);
 module.exports.VisibleThings = VisibleThings;
-},{"./util":5,"events":"events","util":"util"}],7:[function(require,module,exports){
+},{"./util":6,"events":"events","util":"util"}],8:[function(require,module,exports){
 var activeScans = {
     rdScan: 0, watchScan: 0, leScan: 0
 };
@@ -578,7 +689,7 @@ var scanningActive = function () {
 
 module.exports.activeScans = activeScans;
 module.exports.scanningActive = scanningActive;
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var util = require('./util.js');
 var BluetoothDevice = require('./wb-device').BluetoothDevice;
 var filtersLib = require('./wb-filters');
@@ -666,7 +777,7 @@ var BluetoothLEScan = function (webBluetoothObj, g, isFiltering, scanOptions, ev
 };
 
 module.exports.BluetoothLEScan = BluetoothLEScan;
-},{"./activeScans":7,"./util.js":15,"./wb-advertisement":16,"./wb-device":19,"./wb-filters":21}],9:[function(require,module,exports){
+},{"./activeScans":8,"./util.js":16,"./wb-advertisement":17,"./wb-device":20,"./wb-filters":22}],10:[function(require,module,exports){
 /**
 
  Example code:
@@ -697,7 +808,7 @@ module.exports.instantiateEmitter = function (object) {
         // we are in node
         EventEmitter.call(object);
 };
-},{"events":"events","util":"util"}],10:[function(require,module,exports){
+},{"events":"events","util":"util"}],11:[function(require,module,exports){
 var util = require('./util');
 
 module.exports.nameFilter = function (filter, peripheral) {
@@ -800,7 +911,7 @@ function checkMfrMask(hexMfrData, dataPrefix, mask) {
     }
     return true;
 }
-},{"./util":15}],11:[function(require,module,exports){
+},{"./util":16}],12:[function(require,module,exports){
 var util = require('./util');
 var errors = require('./wb-errors');
 var errorMessages = require('./wb-errors').errors;
@@ -967,10 +1078,10 @@ module.exports.validateFilters = function (g, filters, acceptAllDevices, optiona
             return serviceCheckResult;
         }
     }
-
+    
     return checkOptionsResult;
 };
-},{"./util":15,"./wb-errors":20}],12:[function(require,module,exports){
+},{"./util":16,"./wb-errors":21}],13:[function(require,module,exports){
 "use strict";
 var GATTIP = require('gatt-ip-js').GATTIP;
 var util = require('./util.js');
@@ -1268,7 +1379,7 @@ module.exports.init = function (config) {
     };
 };
 
-},{"./activeScans":7,"./bluetooth-le-scan":8,"./filter-validation":11,"./task":13,"./thirdparty":14,"./util.js":15,"./wb-device":19,"./wb-filters":21,"events":"events","gatt-ip-js":"gatt-ip-js"}],13:[function(require,module,exports){
+},{"./activeScans":8,"./bluetooth-le-scan":9,"./filter-validation":12,"./task":14,"./thirdparty":15,"./util.js":16,"./wb-device":20,"./wb-filters":22,"events":"events","gatt-ip-js":"gatt-ip-js"}],14:[function(require,module,exports){
 function RetryingTask (interval, f) {
     var self = this;
     var timer;
@@ -1289,7 +1400,7 @@ function RetryingTask (interval, f) {
 }
 
 module.exports.RetryingTask = RetryingTask;
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /**
  *
  Copyright 2014 Google Inc. All rights reserved.
@@ -1561,7 +1672,7 @@ module.exports.BluetoothUUID.getService = ResolveUUIDName('service');
 module.exports.BluetoothUUID.getCharacteristic = ResolveUUIDName('characteristic');
 module.exports.BluetoothUUID.getDescriptor = ResolveUUIDName('descriptor');
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var SHORT_UUID_SUFFFIX = '-0000-1000-8000-00805F9B34FB';
 function toShortUUID(uuidStr) {
     if (uuidStr.indexOf(SHORT_UUID_SUFFFIX) == 8) {
@@ -1735,7 +1846,7 @@ module.exports.removeNotificationListeners = function(peripheral) {
         }
     }
 };
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 "use strict";
 var util = require('./util.js');
 var activeScans = require('./activeScans').activeScans;
@@ -1743,7 +1854,7 @@ var scanningActive = require('./activeScans').scanningActive;
 
 var BluetoothAdvertisingEvent = function(peripheral) {
     var self = this;
-
+    
     Object.defineProperty(self, "device", {
         get: function () {
             return peripheral._wbBluetoothDevice;
@@ -1784,7 +1895,7 @@ var BluetoothAdvertisingEvent = function(peripheral) {
             return undefined;
         }
     });
-
+    
     return self;
 };
 
@@ -1822,7 +1933,7 @@ var Advertisement = function (_gattIp, device) {
 
 module.exports.Advertisement = Advertisement;
 module.exports.BluetoothAdvertisingEvent = BluetoothAdvertisingEvent;
-},{"./activeScans":7,"./util.js":15}],17:[function(require,module,exports){
+},{"./activeScans":8,"./util.js":16}],18:[function(require,module,exports){
 var util = require('./util.js');
 var ee = require('./event-emitter');
 var BluetoothRemoteGATTDescriptor = require('./wb-descriptor').BluetoothRemoteGATTDescriptor;
@@ -2020,7 +2131,7 @@ function BluetoothCharacteristicProperties(gattIpProperties) {
 
 
 
-},{"./event-emitter":9,"./util.js":15,"./wb-descriptor":18}],18:[function(require,module,exports){
+},{"./event-emitter":10,"./util.js":16,"./wb-descriptor":19}],19:[function(require,module,exports){
 var util = require('./util');
 
 function BluetoothRemoteGATTDescriptor(webBluetoothCharacteristic, gattIp, gattIpDescriptor) {
@@ -2063,7 +2174,7 @@ function BluetoothRemoteGATTDescriptor(webBluetoothCharacteristic, gattIp, gattI
             });
         });
     };
-
+    
     var writeValue = function (newValue) {
         var self = this;
         return util.errorLoggingPromise(function (fulfill, reject) {
@@ -2079,7 +2190,7 @@ function BluetoothRemoteGATTDescriptor(webBluetoothCharacteristic, gattIp, gattI
 
 module.exports.BluetoothRemoteGATTDescriptor = BluetoothRemoteGATTDescriptor;
 
-},{"./util":15}],19:[function(require,module,exports){
+},{"./util":16}],20:[function(require,module,exports){
 var util = require('./util.js');
 var ee = require('./event-emitter');
 var BluetoothRemoteGATTServer = require('./wb-server').BluetoothRemoteGATTServer;
@@ -2103,13 +2214,13 @@ function BluetoothDevice(gattIp, gattIpPeripheral, optionalServices, filter) {
     self.removeEventListener = function (eventName, cb) {
         this.removeListener(eventName, cb);
     };
-
+    
     function onDisconnected(peripheral) {
         self.gatt.connected = false;
         util.removeNotificationListeners(peripheral);
         self.emit('gattserverdisconnected', {target: self});
     }
-
+    
     _gattIpPeripheral.once('disconnected', onDisconnected);
 
     Object.defineProperty(this, "gatt", {
@@ -2136,14 +2247,14 @@ function BluetoothDevice(gattIp, gattIpPeripheral, optionalServices, filter) {
             _watchingAdvertisements = value;
         }
     });
-
+    
     self.watchAdvertisements = advertisementObject.watchAdv;
     self.unwatchAdvertisements = advertisementObject.unwatchAdv;
 }
 
 module.exports.BluetoothDevice = BluetoothDevice;
 ee.makeEmitter(BluetoothDevice);
-},{"./event-emitter":9,"./util.js":15,"./wb-advertisement":16,"./wb-server":22}],20:[function(require,module,exports){
+},{"./event-emitter":10,"./util.js":16,"./wb-advertisement":17,"./wb-server":23}],21:[function(require,module,exports){
 var errorMessages = {
     INVALID_OPTIONS_ERROR_MESSAGE: "Either 'filters' should be present or 'acceptAllDevices' should be true, but not both.",
     INVALID_LESCAN_OPTIONS_ERROR_MESSAGE: "Either 'filters' should be present or 'acceptAllAdvertisements' should be true, but not both.",
@@ -2160,7 +2271,7 @@ module.exports.invalidServiceUUIDMessage = function (uuid) {
 };
 
 module.exports.errors = errorMessages;
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 var util = require('./util');
 var filterUtil = require('./filter-util');
 
@@ -2242,7 +2353,7 @@ module.exports.BluetoothLEScanFilterInit = function (filters) {
     }
     return this;
 };
-},{"./filter-util":10,"./util":15}],22:[function(require,module,exports){
+},{"./filter-util":11,"./util":16}],23:[function(require,module,exports){
 var util = require('./util.js');
 var filtersLib = require('./wb-filters');
 var BluetoothRemoteGATTService = require('./wb-service').BluetoothRemoteGATTService;
@@ -2371,7 +2482,7 @@ function BluetoothRemoteGATTServer(device, gattIp, gattIpPeripheral, optionalSer
 module.exports.BluetoothRemoteGATTServer = BluetoothRemoteGATTServer;
 
 ee.makeEmitter(BluetoothRemoteGATTServer);
-},{"./event-emitter":9,"./util.js":15,"./wb-filters":21,"./wb-service":23}],23:[function(require,module,exports){
+},{"./event-emitter":10,"./util.js":16,"./wb-filters":22,"./wb-service":24}],24:[function(require,module,exports){
 var util = require('./util.js');
 var BluetoothRemoteGATTCharacteristic = require('./wb-characteristic').BluetoothRemoteGATTCharacteristic;
 
@@ -2464,9 +2575,9 @@ function BluetoothRemoteGATTService(device, gattIp, gattipService) {
 
 module.exports.BluetoothRemoteGATTService = BluetoothRemoteGATTService;
 
-},{"./util.js":15,"./wb-characteristic":17}],24:[function(require,module,exports){
+},{"./util.js":16,"./wb-characteristic":18}],25:[function(require,module,exports){
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 var C = require("./lib/constants.js").C;
 var helper = require('./lib/message-helper');
 var ee = require("./lib/event-emitter");
@@ -2603,7 +2714,7 @@ ee.makeEmitter(Characteristic);
 
 module.exports.Characteristic = Characteristic;
 
-},{"./descriptor":26,"./lib/constants.js":30,"./lib/event-emitter":31,"./lib/message-helper":34}],26:[function(require,module,exports){
+},{"./descriptor":27,"./lib/constants.js":31,"./lib/event-emitter":32,"./lib/message-helper":35}],27:[function(require,module,exports){
 var C = require("./lib/constants.js").C;
 var helper = require('./lib/message-helper');
 
@@ -2673,7 +2784,7 @@ function Descriptor(characteristic, uuid) {
 module.exports.Descriptor = Descriptor;
 
 
-},{"./lib/constants.js":30,"./lib/message-helper":34}],27:[function(require,module,exports){
+},{"./lib/constants.js":31,"./lib/message-helper":35}],28:[function(require,module,exports){
 //TODO: Review which ones application errorrs, which ones are internal (gateway protocol not understood oro something went wrong) and which ones are errors from Gateway/Bluetooth
 
 module.exports.ApplicationError = function (message) {
@@ -2705,7 +2816,7 @@ module.exports.GatewayError = function (params) {
     Error.captureStackTrace(this, module.exports.GatewayError);
 };
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var C = require('./lib/constants').C;
 var helper = require('./lib/message-helper');
 var Peripheral = require('./peripheral').Peripheral;
@@ -2992,7 +3103,7 @@ function Gateway(gattip, scanFilters) {
 ee.makeEmitter(Gateway);
 module.exports.Gateway = Gateway;
 
-},{"./errors":27,"./lib/constants":30,"./lib/event-emitter":31,"./lib/message-helper":34,"./peripheral":38,"./stream":40}],29:[function(require,module,exports){
+},{"./errors":28,"./lib/constants":31,"./lib/event-emitter":32,"./lib/message-helper":35,"./peripheral":39,"./stream":41}],30:[function(require,module,exports){
 var ee = require("./lib/event-emitter");
 var InternalError = require("./errors").InternalError;
 var ApplicationError = require("./errors").ApplicationError;
@@ -3151,9 +3262,9 @@ function GATTIP() {
             if (typeof window == 'object') {
                 WebSocket = window.WebSocket;
             } else {
-                WebSocket = require('websocket').w3cwebsocket;
+                WebSocket = require('websocket').w3cwebsocket;                
             }
-            stream = new WebSocket(config.url, undefined, undefined, undefined, undefined, NODE_CLIENT_SOCKET_CONFIG);
+            stream = new WebSocket(config.url, undefined, undefined, undefined, undefined, NODE_CLIENT_SOCKET_CONFIG);            
             stream.onopen = function () {
                 doOpen(config);
             };
@@ -3281,7 +3392,7 @@ function GATTIP() {
 ee.makeEmitter(GATTIP);
 module.exports.GATTIP = GATTIP;
 
-},{"./errors":27,"./gateway":28,"./lib/event-emitter":31,"./lib/message-handler":33,"./lib/message-helper":34,"./lib/message-processor":35,"./lib/server-message-handler":36,"websocket":24}],30:[function(require,module,exports){
+},{"./errors":28,"./gateway":29,"./lib/event-emitter":32,"./lib/message-handler":34,"./lib/message-helper":35,"./lib/message-processor":36,"./lib/server-message-handler":37,"websocket":25}],31:[function(require,module,exports){
 var C = {
     // TODO: When we are done, clean up all unsupported constancts
 
@@ -3425,7 +3536,7 @@ var C = {
 
 module.exports.C = C;
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /**
 
  Example code:
@@ -3454,7 +3565,7 @@ module.exports.instantiateEmitter = function (object) {
 };
 
 
-},{"events":"events","util":"util"}],32:[function(require,module,exports){
+},{"events":"events","util":"util"}],33:[function(require,module,exports){
 var C = require('./constants').C;
 function getDiscoverable(advdata, advArray) {
     var discoverableDataLength = parseInt(advArray[0], 16);
@@ -3663,7 +3774,7 @@ module.exports.parseAdvArray = function (peripheral, rawAdvertisingData) {
         }
     } while (true);
 };
-},{"./constants":30}],33:[function(require,module,exports){
+},{"./constants":31}],34:[function(require,module,exports){
 var C = require('./constants').C;
 var helper = require('./message-helper');
 var InternalError = require('./../errors').InternalError;
@@ -3754,7 +3865,7 @@ module.exports.MessageHandler = function (gattip, gateway) {
         }
     };
 };
-},{"./../errors":27,"./constants":30,"./message-helper":34}],34:[function(require,module,exports){
+},{"./../errors":28,"./constants":31,"./message-helper":35}],35:[function(require,module,exports){
 var C = require('./constants').C;
 var constantNames = {};
 var InternalError = require('./../errors').InternalError;
@@ -3987,7 +4098,7 @@ module.exports.populateParams = function (serviceTableObject, params) {
 };
 
 
-},{"./../errors":27,"./constants":30}],35:[function(require,module,exports){
+},{"./../errors":28,"./constants":31}],36:[function(require,module,exports){
 var ee = require('./event-emitter');
 var C = require('./constants').C;
 var ApplicationError = require('./../errors').ApplicationError;
@@ -4105,7 +4216,7 @@ function MessageProcessor() {
 ee.makeEmitter(MessageProcessor);
 module.exports.MessageProcessor = MessageProcessor;
 
-},{"./../errors":27,"./constants":30,"./event-emitter":31}],36:[function(require,module,exports){
+},{"./../errors":28,"./constants":31,"./event-emitter":32}],37:[function(require,module,exports){
 var C = require('./constants.js').C;
 var ee = require('./event-emitter');
 var helper = require('./message-helper');
@@ -4458,7 +4569,7 @@ this.GATM_DESCRIPTOR_PROPERTIES_WRITE = 0x00000002;
 ee.makeEmitter(ServerMessageHandler);
 module.exports.ServerMessageHandler = ServerMessageHandler;
 
-},{"./constants.js":30,"./event-emitter":31,"./message-helper":34}],37:[function(require,module,exports){
+},{"./constants.js":31,"./event-emitter":32,"./message-helper":35}],38:[function(require,module,exports){
 var C = require('./constants').C;
 var Service = require('./../service').Service;
 var Characteristic = require('./../characteristic').Characteristic;
@@ -4603,7 +4714,7 @@ module.exports.getServiceJsonFromPeripheralObject = function(myPeripheral) {
 };
 
 
-},{"./../characteristic":25,"./../descriptor":26,"./../service":39,"./constants":30}],38:[function(require,module,exports){
+},{"./../characteristic":26,"./../descriptor":27,"./../service":40,"./constants":31}],39:[function(require,module,exports){
 var C = require('./lib/constants.js').C;
 var helper = require('./lib/message-helper');
 var advDataParser = require('./lib/message-advdata-parser');
@@ -4824,7 +4935,7 @@ ee.makeEmitter(Peripheral);
 
 module.exports.Peripheral = Peripheral;
 
-},{"./lib/constants.js":30,"./lib/event-emitter":31,"./lib/message-advdata-parser":32,"./lib/message-helper":34,"./lib/service-table":37,"./service":39}],39:[function(require,module,exports){
+},{"./lib/constants.js":31,"./lib/event-emitter":32,"./lib/message-advdata-parser":33,"./lib/message-helper":35,"./lib/service-table":38,"./service":40}],40:[function(require,module,exports){
 var helper = require('./lib/message-helper');
 var Characteristic = require('./characteristic').Characteristic;
 
@@ -4865,7 +4976,7 @@ function Service(peripheral, uuid) {
 exports.Service = Service;
 
 
-},{"./characteristic":25,"./lib/message-helper":34}],40:[function(require,module,exports){
+},{"./characteristic":26,"./lib/message-helper":35}],41:[function(require,module,exports){
 var C = require('./lib/constants.js').C;
 var helper = require('./lib/message-helper');
 var advDataParser = require('./lib/message-advdata-parser');
@@ -4946,7 +5057,7 @@ module.exports.Stream = Stream;
 
 
 
-},{"./lib/constants.js":30,"./lib/event-emitter":31,"./lib/message-advdata-parser":32,"./lib/message-helper":34,"./lib/service-table":37,"./service":39}],41:[function(require,module,exports){
+},{"./lib/constants.js":31,"./lib/event-emitter":32,"./lib/message-advdata-parser":33,"./lib/message-helper":35,"./lib/service-table":38,"./service":40}],42:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5132,7 +5243,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -5157,7 +5268,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
@@ -5471,7 +5582,7 @@ function isUndefined(arg) {
 module.exports.GATTIP = require('./gattip').GATTIP;
 module.exports.C = require('./lib/constants').C;
 
-},{"./gattip":29,"./lib/constants":30}],"path":[function(require,module,exports){
+},{"./gattip":30,"./lib/constants":31}],"path":[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5699,7 +5810,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":41}],"util":[function(require,module,exports){
+},{"_process":42}],"util":[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6289,7 +6400,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":43,"_process":41,"inherits":42}]},{},[2]);
+},{"./support/isBuffer":44,"_process":42,"inherits":43}]},{},[2]);
 
 /**
  * @category  html5 widgets
