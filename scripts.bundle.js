@@ -59,6 +59,7 @@ nodeUtil.inherits(BluVolt, EventEmitter);
 module.exports.BluVolt = BluVolt;
 
 },{"./util":5,"events":"events","util":"util"}],2:[function(require,module,exports){
+    "use strict";
 const util = require('util');
 const EventEmitter = require('events').EventEmitter;
 
