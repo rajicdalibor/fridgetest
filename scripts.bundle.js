@@ -188,6 +188,7 @@ module.exports.SmartFridge = SmartFridge;
   }
 
 },{"./bluvolt":1,"./playbulb-smart-bulb":3,"./revogi-smart-meter":4,"./util":5,"./visible-things":6,"blueapp-wb":12,"events":"events","util":"util"}],3:[function(require,module,exports){
+    "use strict";
 const util = require('util');
 const EventEmitter = require('events').EventEmitter;
 
@@ -349,6 +350,7 @@ function PlayBulb(bluetooth, intervalMs) {
 util.inherits(PlayBulb, EventEmitter);
 module.exports.PlayBulb = PlayBulb;
 },{"events":"events","util":"util"}],4:[function(require,module,exports){
+    "use strict";
 const util = require('./util');
 const nodeUtil = require('util');
 const EventEmitter = require('events').EventEmitter;
@@ -504,6 +506,7 @@ function RevogiSmartMeter(bluetooth, intervalMs) {
 nodeUtil.inherits(RevogiSmartMeter, EventEmitter);
 module.exports.RevogiSmartMeter = RevogiSmartMeter;
 },{"./util":5,"events":"events","util":"util"}],5:[function(require,module,exports){
+    "use strict";
 module.exports.toHex = (data) => {
     const arrData = new Uint8Array(data.buffer);
     let hexData = '';
