@@ -164,12 +164,10 @@ var AppComponent = (function () {
             input: 'color',
         });
         var colorDiv = document.getElementById('color');
-        colorPicker.addUserEvent('change', function (value) {
-            colorDiv.style.backgroundColor = value.getCurColorHex();
-        });
         colorPicker.resize(window.innerWidth / 6.5);
         var powerSubject = new __WEBPACK_IMPORTED_MODULE_4_rxjs_Subject__["a" /* Subject */]();
         var doorSubject = new __WEBPACK_IMPORTED_MODULE_4_rxjs_Subject__["a" /* Subject */]();
+        var bulbSubject = new __WEBPACK_IMPORTED_MODULE_4_rxjs_Subject__["a" /* Subject */]();
         powerSubject.subscribe({
             next: function (value) {
                 self.powerConsumption = value;
@@ -182,7 +180,12 @@ var AppComponent = (function () {
         });
         this.storedShelves = this.us.readStoredShelves();
         this.us.sortAllDevices(this);
-        this.fs.fridgeServiceSubscription(this, config, powerSubject, doorSubject);
+        this.fs.fridgeServiceSubscription(this, config, powerSubject, doorSubject, bulbSubject);
+        colorPicker.addUserEvent('change', function (value) {
+            colorDiv.style.backgroundColor = value.getCurColorHex();
+            console.log(value.getCurColorHex());
+            bulbSubject.next(value);
+        });
         if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && location.port === "4200") {
             console.log("It's a local server!");
             this.checkForNfcEvent();
@@ -593,7 +596,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var FridgeService = (function () {
     function FridgeService(us) {
         this.us = us;
-        this.fridgeServiceSubscription = function (obj, conf, powerSubject, doorSubject) {
+        this.fridgeServiceSubscription = function (obj, conf, powerSubject, doorSubject, bulbSubject) {
             var _this = this;
             var debug = false;
             var bulbDevice;
@@ -646,6 +649,11 @@ var FridgeService = (function () {
             });
             smartFridge.on('bulbData', function (data) {
                 console.log("BULB", "id:", data.id, "color:", data.color);
+            });
+            bulbSubject.subscribe({
+                next: function (value) {
+                    smartFridge.setBulbColor(value);
+                }
             });
         };
     }
