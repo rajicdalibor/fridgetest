@@ -181,11 +181,28 @@ var AppComponent = (function () {
         this.storedShelves = this.us.readStoredShelves();
         this.us.sortAllDevices(this);
         this.fs.fridgeServiceSubscription(this, config, powerSubject, doorSubject, bulbSubject);
-        colorPicker.addUserEvent('change', function (value) {
-            colorDiv.style.backgroundColor = value.getCurColorHex();
-            console.log(value.getCurColorHex());
-            bulbSubject.next(value);
-        });
+        var lightSwitch = function (lightStatus) {
+            var self = this;
+            self.lightOn = lightStatus;
+        };
+        var addPickerUserEvent = function () {
+            colorPicker.addUserEvent('change', function (value) {
+                var selectedColor = value.getCurColorHex();
+                colorDiv.style.backgroundColor = selectedColor;
+                console.log(selectedColor);
+                bulbSubject.next(selectedColor);
+                // if (selectedColor === '#000000') {
+                //   lightSwitch(false);
+                // } else {
+                //   lightSwitch(true);
+                //   // this.lightOn = true;
+                // }
+            });
+        };
+        setInterval(function () {
+            console.log(_this.lightOn);
+        }, 2000);
+        addPickerUserEvent();
         if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && location.port === "4200") {
             console.log("It's a local server!");
             this.checkForNfcEvent();
@@ -610,6 +627,20 @@ var FridgeService = (function () {
             if (!storedDoor) {
                 doorDevice = conf.doorUuid;
             }
+            var gatewayToken;
+            var proxyUrl;
+            if (conf.token) {
+                gatewayToken = conf.token;
+            }
+            else {
+                gatewayToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdJZCI6NDQ4MjA2NDcwLCJnYXRld2F5SWQiOjI0Mzc1NDQ4NCwiaXNHYXRld2F5IjpmYWxzZSwiZmlsdGVyU2NhbiI6ZmFsc2UsImlhdCI6MTUxMzc3NTE1OCwiZXhwIjoxNTIwOTc1MTU4fQ.3HYINysogR_umv0VPOVREv1OoaCdjM3KpLXRtIYAoL0';
+            }
+            if (conf.url) {
+                proxyUrl = conf.url;
+            }
+            else {
+                proxyUrl = "wss://dev-proxy.blueapp.io";
+            }
             var config = {
                 fridgeDevices: {
                     bulb: true,
@@ -619,9 +650,8 @@ var FridgeService = (function () {
                 },
                 // token: conf.token,
                 // url: conf.proxyUrl,
-                url: "wss://dev-proxy.blueapp.io",
-                /* NIX@dev  */
-                token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdJZCI6NDQ4MjA2NDcwLCJnYXRld2F5SWQiOjI0Mzc1NDQ4NCwiaXNHYXRld2F5IjpmYWxzZSwiZmlsdGVyU2NhbiI6ZmFsc2UsImlhdCI6MTUxMzc3NTE1OCwiZXhwIjoxNTIwOTc1MTU4fQ.3HYINysogR_umv0VPOVREv1OoaCdjM3KpLXRtIYAoL0',
+                url: proxyUrl,
+                token: gatewayToken,
                 doorUuid: doorDevice,
                 bulbUuid: bulbDevice
             };
@@ -652,6 +682,14 @@ var FridgeService = (function () {
             });
             bulbSubject.subscribe({
                 next: function (value) {
+                    console.log('pokusavamo da pisemo ', value);
+                    console.log(obj);
+                    if (value === '#000000') {
+                        obj.lightOn = false;
+                    }
+                    else {
+                        obj.lightOn = true;
+                    }
                     smartFridge.setBulbColor(value);
                 }
             });
