@@ -83,7 +83,7 @@ const SmartShelf = require('./smartshelf').SmartShelf;
 const VisibleThings = require('./visible-things').VisibleThings;
 
 function createWb(_config, extras) {
-    let config = _config;
+    var config = _config;
     if (extras) {
         config = {};
         Object.assign(_config, extras);
@@ -133,7 +133,7 @@ function SmartFridge(config) {
         return device;
     }
 
-    let smartBulb;
+    var smartBulb;
     if (true === config.fridgeDevices.bulb) {
         smartBulb = handleDeivce(new PlayBulb(createWb(config)), 'bulb');
     }
@@ -149,7 +149,7 @@ function SmartFridge(config) {
     }
 
     this.setBulbColor = (color) => {
-        let rgb;
+        var rgb;
         if (typeof color === 'string') {
             if (color.startsWith('#')) {
                 color = color.substring(1);
@@ -187,16 +187,16 @@ const CANDLE_COLOR_UUID = 0xFFFC;
 function PlayBulb(bluetooth, intervalMs) {
     EventEmitter.call(this);
     const self = this;
-    let idleToggle = false; // vary the value a bit to maintain connection
-    let rgb;
-    let pollTask;
+    var idleToggle = false; // vary the value a bit to maintain connection
+    var rgb;
+    var pollTask;
 
     this.setRgb = newRgb => {
         rgb = new Uint8Array([0, newRgb.r, newRgb.g, newRgb.b]);
     };
 
     const connect = pollIntervalMs => {
-        let connectedTime = new Date().getTime();
+        var connectedTime = new Date().getTime();
         self.lightColorCharacteristic = undefined;
         self.powerStatus = undefined;
 
@@ -208,7 +208,7 @@ function PlayBulb(bluetooth, intervalMs) {
             filters: [{services: [CANDLE_SERVICE_UUID]}]
         };
 
-        let device;
+        var device;
         return bluetooth.requestDevice(options)
             .then(_device => {
                 device = _device;
@@ -272,7 +272,7 @@ function PlayBulb(bluetooth, intervalMs) {
                                 }
                             });
                         if (rgb) {
-                            let writeVal = rgb;
+                            var writeVal = rgb;
                             idleToggle = !idleToggle;
                             if (idleToggle) {
                                 const offset = writeVal[1] < 2 ? 2 : -2;
@@ -355,12 +355,12 @@ const NOTIFY_CHAR_UUID = 0xFFF4;
 function RevogiSmartMeter(bluetooth, intervalMs) {
     EventEmitter.call(this);
     const self = this;
-    let idleToggle = false; // vary the value a bit to maintain connection
-    let pollTask;
+    var idleToggle = false; // vary the value a bit to maintain connection
+    var pollTask;
 
 
     const connect = pollIntervalMs => {
-        let connectedTime = new Date().getTime();
+        var connectedTime = new Date().getTime();
         self.lightColorCharacteristic = undefined;
         self.powerStatus = undefined;
 
@@ -375,9 +375,9 @@ function RevogiSmartMeter(bluetooth, intervalMs) {
             }]
         };
 
-        let device;
-        let service;
-        let infoChar;
+        var device;
+        var service;
+        var infoChar;
         return bluetooth.requestDevice(options)
             .then(_device => {
                 device = _device;
@@ -399,7 +399,7 @@ function RevogiSmartMeter(bluetooth, intervalMs) {
             .then(characteristic => {
                 characteristic.startNotifications();
                 characteristic.addEventListener('characteristicvaluechanged', event => {
-                    let value = event.target.value;
+                    var value = event.target.value;
                     //const hexData = util.toHex(value);
                     //console.log(hexData);
                     if (value.getUint32(0) === 0x0f0f0400) {
@@ -523,18 +523,18 @@ function SmartShelf(bluetooth) {
         bluetooth.requestLEScan(options)
             .then(() => {
                 bluetooth.addEventListener('advertisementreceived', event => {
-                    let data = event.manufacturerData.get(0x02F4);
+                    var data = event.manufacturerData.get(0x02F4);
                     const hexData = util.toHex(data);
                     function cutFront(dataView, nBytes) {
                         return new DataView(data.buffer.slice(nBytes, data.buffer.byteLength));
                     }
                     data = cutFront(data, 3);
-                    let weightLbs  = -1.0;
-                    let tempC  = -200.0;
+                    var weightLbs  = -1.0;
+                    var tempC  = -200.0;
                     while (data.buffer.byteLength > 0) {
                         const dataType = data.getUint8(0);
                         data = cutFront(data, 1);
-                        let bytesConsumed = data.buffer.byteLength;
+                        var bytesConsumed = data.buffer.byteLength;
                         switch (dataType) {
                             case 0x01: // weight
                                 const weightData = data.getUint16(0);
@@ -605,9 +605,9 @@ module.exports.SmartShelf = SmartShelf;
 },{"./util":6,"events":"events","util":"util"}],6:[function(require,module,exports){
 module.exports.toHex = (data) => {
     const arrData = new Uint8Array(data.buffer);
-    let hexData = '';
-    for (let i = 0; i < arrData.length; i++) {
-        let hex = arrData[i].toString(16);
+    var hexData = '';
+    for (var i = 0; i < arrData.length; i++) {
+        var hex = arrData[i].toString(16);
         if (hex.length === 1) {
             hex = '0' + hex;
         }
@@ -617,7 +617,7 @@ module.exports.toHex = (data) => {
 };
 module.exports.hexAsArray = (hex) => {
     const bytes = [];
-    for (let i = 0; i < hex.length - 1; i += 2) {
+    for (var i = 0; i < hex.length - 1; i += 2) {
         bytes.push(parseInt(hex.substr(i, 2), 16));
     }
     return bytes;
