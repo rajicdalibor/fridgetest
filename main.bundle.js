@@ -38,7 +38,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/app.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div [hidden]=\"message == ''\" class=\"toaster\">\n  {{message}}\n</div>\n\n<div style=\"height: 100vh\" fxLayout=\"row\">\n  <div style=\"height: 100%; position: relative\" fxLayoutAlign=\"center center\" fxFlex=\"50\" fxLayout=\"row\">\n    <!--<div class=\"sliderGroup\" style=\"border: solid red\" fxLayout=\"column\" fxFlex=\"40\">-->\n    <div fxFlex=\"40\" style=\"height: 95%; width: 100%\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n      <div fxFlex=\"30\" style=\"width: 70%; margin-top: 10%\">\n        <img class='image2' src=\"assets/bulb.png\">\n      </div>\n      <div fxFlex=\"10\" style=\"margin-top:20%\">\n        <mat-slide-toggle style=\"width: 100%\" [checked]=\"lightOn\"\n                          (change)=\"lightOn = $event.source.checked\"></mat-slide-toggle>\n      </div>\n      <div id=\"color\" style=\"width: 70%; height: 150px\"></div>\n\n      <!--<input id=\"color\" value=\"#54aedb\" style=\"width: 70%; height: 50px\">-->\n      <div id=\"colorPicker\" fxFlex=\"50\" style=\"margin-top: 15%;\">\n        <canvas id=\"picker\"></canvas>\n      </div>\n    </div>\n    <div style=\"height: 95%\">\n      <div class=\"img\" fxFlex style=\"position: relative\">\n        <div style=\"width: 18%; left: 40%; top:7%; height: 12%; position: absolute\" (click)=\"reloadPage()\"></div>\n        <div [hidden]=\"!powerConsumption\"\n             style=\"width: 80%; top:20%;  margin-left: 10%; position: absolute; text-align: center; font-size: 5vh; color:white; font-family: 'Barlow Condensed', sans-serif;\">\n          Power consumption: {{powerConsumption}} KW/h\n        </div>\n        <div [hidden]=\"!doorOpened\"\n             style=\"width: 40%; top:50%;  margin-left: 30%; position: absolute; text-align: center; font-size: 5vh; color:white; font-family: 'Barlow Condensed', sans-serif;\">\n          <img class=\"img\" src=\"assets/doorOpened.png\">\n        </div>\n        <img class=\"img\" src=\"assets/fridge.png\">\n      </div>\n    </div>\n  </div>\n  <div\n    style=\"height: 100%; overflow-y: scroll; font-family: 'Barlow Condensed', sans-serif; font-size: 2vh;\"\n    fxFlex=\"50\">\n\n    <div *ngFor=\"let shelf of shelves\" style=\"height: 25%;\" fxLayout=\"row\">\n      <div style=\"width: 50px; height: 100%;\">\n        <div [hidden]=\"!shelf.favImg\" style=\"height: 100%\">\n          <img class='image2' style=\"cursor: pointer; width: 30px; height: 30px; position: relative;top: 50%;transform: translateY(-50%);\"\n               src=\"{{shelf.favImg}}\"\n               (click)=\"favToggle(shelf)\">\n        </div>\n      </div>\n      <div class=\"bckImg\" fxFlex=\"100\"\n           style=\"margin-top: 5px; margin-bottom: 5px; border-bottom: solid 1px #bdbdbd; padding-right: 10px; padding-left: 10px; position: relative\"\n           fxLayout=\"row\">\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <!--<div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 2rem\">-->\n            <!--<img class='image' src=\"../assets/id1.png\">-->\n          <!--</div>-->\n          <div [hidden]=\"!shelf.shelfID\" fxFlex=\"80\" class=\"idFont\" style=\"text-align: center\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.shelfID}}\n          </div>\n        </div>\n        <!--<div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\" style=\"height: 100%; border: 1px solid red\">-->\n          <!--<div fxFlex=\"70\" style=\"width: 70%; height: 70%;  padding-top: 2rem; position: relative; border: 1px solid green\">-->\n            <!--<img class='image' src=\"assets/weight.png\" style=\"border: 1px solid blue\">-->\n          <!--</div>-->\n          <!--<div fxFlex=\"30\" class=\"fonts\" style=\"text-align: center\" fxLayoutAlign=\"center center\">-->\n            <!--{{shelf.temperature}}-->\n            <!--<div [hidden]=\"!shelf.temperature\">F</div>-->\n            <!--<div [hidden]=\"shelf.temperature\">-&#45;&#45;</div>-->\n          <!--</div>-->\n        <!--</div>-->\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 2rem; position: relative\">\n            <img class='image' src=\"{{shelf.tempImg}}\">\n          </div>\n          <div [hidden]=\"!shelf.weight\" fxFlex=\"30\" class=\"fonts\" style=\"text-align: center\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.weight}}\n            <div [hidden]=\"!shelf.temperature\"> F</div>\n            <div [hidden]=\"shelf.temperature\">---</div>\n          </div>\n        </div>\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 2rem; position: relative\">\n            <img class='image' src=\"assets/weight.png\">\n          </div>\n          <div [hidden]=\"!shelf.weight\" fxFlex=\"30\" class=\"fonts\" style=\"text-align: center\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.weight}}\n            <div [hidden]=\"!shelf.weight\"> lbs</div>\n            <div [hidden]=\"shelf.weight\">---</div>\n          </div>\n        </div>\n\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 2rem; position: relative\">\n            <img class='image' src=\"assets/humidity.png\">\n          </div>\n          <div [hidden]=\"!shelf.humidity\" fxFlex=\"30\" class=\"fonts\" style=\"text-align: center;\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.humidity}}\n            <div [hidden]=\"!shelf.humidity\"> % RH</div>\n            <div [hidden]=\"shelf.humidity\">---</div>\n          </div>\n        </div>\n\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 3rem; position: relative\">\n            <img class='image' src=\"{{shelf.batteryImg}}\">\n          </div>\n          <div [hidden]=\"!shelf.battery\" fxFlex=\"30\" class=\"fonts\" style=\"text-align: center;\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.battery}}\n            <div [hidden]=\"!shelf.battery\"> %</div>\n            <div [hidden]=\"shelf.battery\">---</div>\n          </div>\n        </div>\n\n      </div>\n\n    </div>\n\n\n  </div>\n</div>\n\n\n"
+module.exports = "<div [hidden]=\"message == ''\" class=\"toaster\">\n  {{message}}\n</div>\n\n<div style=\"height: 100vh\" fxLayout=\"row\">\n  <div style=\"height: 100%; position: relative\" fxLayoutAlign=\"center center\" fxFlex=\"50\" fxLayout=\"row\">\n    <!--<div class=\"sliderGroup\" style=\"border: solid red\" fxLayout=\"column\" fxFlex=\"40\">-->\n    <div fxFlex=\"40\" style=\"height: 95%; width: 100%\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n      <div fxFlex=\"30\" style=\"width: 70%; margin-top: 10%\">\n        <img class='image2' src=\"assets/bulb.png\">\n      </div>\n      <div fxFlex=\"10\" style=\"margin-top:20%\">\n        <mat-slide-toggle style=\"width: 100%\" [checked]=\"lightOn\"\n                          (change)=\"onLightSwitch()\"></mat-slide-toggle>\n      </div>\n      <div id=\"color\" style=\"width: 70%; height: 150px\"></div>\n\n      <!--<input id=\"color\" value=\"#54aedb\" style=\"width: 70%; height: 50px\">-->\n      <div id=\"colorPicker\" fxFlex=\"50\" style=\"margin-top: 15%;\">\n        <canvas id=\"picker\"></canvas>\n      </div>\n    </div>\n    <div style=\"height: 95%\">\n      <div class=\"img\" fxFlex style=\"position: relative\">\n        <div style=\"width: 18%; left: 40%; top:7%; height: 12%; position: absolute\" (click)=\"reloadPage()\"></div>\n        <div [hidden]=\"!powerConsumption\"\n             style=\"width: 80%; top:20%;  margin-left: 10%; position: absolute; text-align: center; font-size: 5vh; color:white; font-family: 'Barlow Condensed', sans-serif;\">\n          Power consumption: {{powerConsumption}} KW/h\n        </div>\n        <div [hidden]=\"!doorOpened\"\n             style=\"width: 40%; top:50%;  margin-left: 30%; position: absolute; text-align: center; font-size: 5vh; color:white; font-family: 'Barlow Condensed', sans-serif;\">\n          <img class=\"img\" src=\"assets/doorOpened.png\">\n        </div>\n        <img class=\"img\" src=\"assets/fridge.png\">\n      </div>\n    </div>\n  </div>\n  <div\n    style=\"height: 100%; overflow-y: scroll; font-family: 'Barlow Condensed', sans-serif; font-size: 2vh;\"\n    fxFlex=\"50\">\n\n    <div *ngFor=\"let shelf of shelves\" style=\"height: 25%;\" fxLayout=\"row\">\n      <!--<div style=\"width: 50px; height: 100%;\">-->\n        <!--<div [hidden]=\"!shelf.favImg\" style=\"height: 100%\">-->\n          <!--<img class='image2' style=\"cursor: pointer; width: 30px; height: 30px; position: relative;top: 50%;transform: translateY(-50%);\"-->\n               <!--src=\"{{shelf.favImg}}\"-->\n               <!--(click)=\"favToggle(shelf)\">-->\n        <!--</div>-->\n      <!--</div>-->\n      <div class=\"bckImg\" fxFlex=\"100\"\n           style=\"margin-top: 5px; margin-bottom: 5px; border-bottom: solid 1px #bdbdbd; padding-right: 10px; padding-left: 10px; position: relative\"\n           fxLayout=\"row\">\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <!--<div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 2rem\">-->\n            <!--<img class='image' src=\"../assets/id1.png\">-->\n          <!--</div>-->\n          <div [hidden]=\"!shelf.shelfID\" fxFlex=\"80\" class=\"idFont\" style=\"text-align: center\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.shelfID}}\n          </div>\n        </div>\n        <!--<div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\" style=\"height: 100%; border: 1px solid red\">-->\n          <!--<div fxFlex=\"70\" style=\"width: 70%; height: 70%;  padding-top: 2rem; position: relative; border: 1px solid green\">-->\n            <!--<img class='image' src=\"assets/weight.png\" style=\"border: 1px solid blue\">-->\n          <!--</div>-->\n          <!--<div fxFlex=\"30\" class=\"fonts\" style=\"text-align: center\" fxLayoutAlign=\"center center\">-->\n            <!--{{shelf.temperature}}-->\n            <!--<div [hidden]=\"!shelf.temperature\">F</div>-->\n            <!--<div [hidden]=\"shelf.temperature\">-&#45;&#45;</div>-->\n          <!--</div>-->\n        <!--</div>-->\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 2rem; position: relative\">\n            <img class='image' src=\"{{shelf.tempImg}}\">\n          </div>\n          <div [hidden]=\"!shelf.weight\" fxFlex=\"30\" class=\"fonts\" style=\"text-align: center\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.temperature}}\n            <div [hidden]=\"!shelf.temperature\">&nbsp;F</div>\n            <div [hidden]=\"shelf.temperature\">---</div>\n          </div>\n        </div>\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 2rem; position: relative\">\n            <img class='image' src=\"assets/weight.png\">\n          </div>\n          <div [hidden]=\"!shelf.weight\" fxFlex=\"30\" class=\"fonts\" style=\"text-align: center\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.weight}}\n            <div [hidden]=\"!shelf.weight\">&nbsp;lbs</div>\n            <div [hidden]=\"shelf.weight\">---</div>\n          </div>\n        </div>\n\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 2rem; position: relative\">\n            <img class='image' src=\"assets/humidity.png\">\n          </div>\n          <div [hidden]=\"!shelf.humidity\" fxFlex=\"30\" class=\"fonts\" style=\"text-align: center;\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.humidity}}\n            <div [hidden]=\"!shelf.humidity\">&nbsp;% RH</div>\n            <div [hidden]=\"shelf.humidity\">---</div>\n          </div>\n        </div>\n\n        <div fxFlex=\"20\" fxLayout=\"column\" fxLayoutAlign=\"center center\">\n          <div fxFlex=\"70\" style=\"width: 70%; height: 70%; padding-top: 3rem; position: relative\">\n            <img class='image' src=\"{{shelf.batteryImg}}\">\n          </div>\n          <div [hidden]=\"!shelf.battery\" fxFlex=\"30\" class=\"fonts\" style=\"text-align: center;\"\n               fxLayoutAlign=\"center center\">\n            {{shelf.battery}}\n            <div [hidden]=\"!shelf.battery\">&nbsp;%</div>\n            <div [hidden]=\"shelf.battery\">---</div>\n          </div>\n        </div>\n\n      </div>\n\n    </div>\n\n\n  </div>\n</div>\n\n\n"
 
 /***/ }),
 
@@ -74,24 +74,23 @@ var AppComponent = (function () {
         this.reloadPage = function () {
             window.location.reload();
         };
-        this.favToggle = function (shelf) {
-            shelf.favorite = !shelf.favorite;
-            shelf.favImg = this.us.getFavIconImg(shelf.favorite);
-            this.shelves = this.us.sortAllDevices(this);
-        };
-        this.removeStoredShelf = function (shelf) {
-            var storedArray = [];
-            for (var i = 0; i < this.storedShelves.length; i++) {
-                if (this.storedShelves[i].shelfID != shelf.shelfID) {
-                    storedArray.push(this.storedShelves[i].shelfID);
-                }
-                else {
-                    this.storedShelves.splice(i, 1);
-                }
-            }
-            localStorage.setItem('storedShelves', JSON.stringify(storedArray));
-            this.shelves = this.us.sortAllDevices(this);
-        };
+        // favToggle = function (shelf) {
+        //   shelf.favorite = !shelf.favorite;
+        //   shelf.favImg = this.us.getFavIconImg(shelf.favorite);
+        //   this.shelves = this.us.sortAllDevices(this);
+        // };
+        // removeStoredShelf = function (shelf) {
+        //   var storedArray = [];
+        //   for (var i = 0; i < this.storedShelves.length; i++) {
+        //     if (this.storedShelves[i].shelfID != shelf.shelfID) {
+        //       storedArray.push(this.storedShelves[i].shelfID);
+        //     } else {
+        //       this.storedShelves.splice(i, 1);
+        //     }
+        //   }
+        //   localStorage.setItem('storedShelves', JSON.stringify(storedArray));
+        //   this.shelves = this.us.sortAllDevices(this);
+        // };
         this.showMessage = function (message) {
             var _this = this;
             this.message = message;
@@ -104,34 +103,48 @@ var AppComponent = (function () {
             this.http.get('http://localhost:4201/v1/events')
                 .subscribe(function (res) {
                 console.log(res);
-                var data = res.json();
-                console.log(data);
-                var events = data.events;
-                for (var i = 0; i < events.length; i++) {
-                    if (events[i].type == "nfc.event") {
-                        if (events[i].event.status == "readdone") {
-                            var uuid = events[i].event.data.uuid;
-                            var status = _this.us.updateNfcAddedDevice(_this, uuid);
-                            if (status == 'added') {
-                                _this.showMessage("Added device " + uuid + " with NFC tag");
+                try {
+                    var data = res.json();
+                    console.log(data);
+                    var events = data.events;
+                    for (var i = 0; i < events.length; i++) {
+                        if (events[i].type == "nfc.event") {
+                            if (events[i].event.status == "readdone") {
+                                var uuid = events[i].event.data.uuid;
+                                var status = _this.us.updateNfcAddedDevice(_this, uuid);
+                                if (status == 'added') {
+                                    _this.showMessage("Added device " + uuid + " with NFC tag");
+                                }
+                                else {
+                                    _this.showMessage('Removed device ' + uuid + ' with NFC tag');
+                                }
                             }
-                            else {
-                                _this.showMessage('Removed device ' + uuid + ' with NFC tag');
-                            }
-                            _this.shelves = _this.us.sortAllDevices(_this);
                         }
                     }
+                }
+                catch (err) {
+                    console.warn('NFC error ', err);
                 }
                 _this.checkForNfcEvent();
             }, function (res) {
                 console.log(res);
             });
         };
+        this.onLightSwitch = function () {
+            if (!this.lightOn) {
+                this.lightOn = true;
+                this.colorPicker.setColorByHex('#00ff01');
+            }
+            else {
+                this.lightOn = false;
+                this.colorPicker.setColorByHex('#000000');
+            }
+        };
         this.shelves = [];
-        this.storedShelves = [];
+        // this.storedShelves = [];
         this.lightOn = false;
         this.message = '';
-        this.consoledata = '';
+        this.doorOpened = false;
     }
     AppComponent.prototype.ngOnInit = function () {
         var _this = this;
@@ -150,21 +163,22 @@ var AppComponent = (function () {
             proxyUrl: urlParams['proxyUrl'],
             smartBulbUuid: urlParams['smartBulbUuid'],
             doorUuid: urlParams['doorUUID'],
-            shelfUuid: urlParams['shelfUuid']
+            shelfUuid: urlParams['shelfUuid'],
+            environment: urlParams['env']
         };
         if ('bluetooth' in navigator) {
             this.navigator = navigator;
         }
-        if ('SmartFridge' in window) {
+        if ('createSmartFridge' in window) {
             this.window = window;
         }
         // Importing color picker
-        var colorPicker = new this.window.KellyColorPicker({
+        this.colorPicker = new this.window.KellyColorPicker({
             place: 'picker',
             input: 'color',
         });
         var colorDiv = document.getElementById('color');
-        colorPicker.resize(window.innerWidth / 6.5);
+        this.colorPicker.resize(window.innerWidth / 6.5);
         var powerSubject = new __WEBPACK_IMPORTED_MODULE_4_rxjs_Subject__["a" /* Subject */]();
         var doorSubject = new __WEBPACK_IMPORTED_MODULE_4_rxjs_Subject__["a" /* Subject */]();
         var bulbSubject = new __WEBPACK_IMPORTED_MODULE_4_rxjs_Subject__["a" /* Subject */]();
@@ -178,21 +192,19 @@ var AppComponent = (function () {
                 self.doorOpened = value;
             }
         });
-        this.storedShelves = this.us.readStoredShelves();
-        this.us.sortAllDevices(this);
+        // this.storedShelves = this.us.readStoredShelves();
+        // this.us.sortAllDevices(this);
+        localStorage.setItem('storedShelves', JSON.stringify(['83:C8', '7F:25', '13:49']));
+        this.shelves = this.us.initStoredShelves();
         this.fs.fridgeServiceSubscription(this, config, powerSubject, doorSubject, bulbSubject);
         var addPickerUserEvent = function () {
-            colorPicker.addUserEvent('change', function (value) {
+            _this.colorPicker.addUserEvent('change', function (value) {
                 var selectedColor = value.getCurColorHex();
                 colorDiv.style.backgroundColor = selectedColor;
-                console.log(selectedColor);
                 bulbSubject.next(selectedColor);
             });
         };
         addPickerUserEvent();
-        var lightSwitch = function () {
-            console.log('promenjena');
-        };
         if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && location.port === "4200") {
             console.log("It's a local server!");
             this.checkForNfcEvent();
@@ -204,82 +216,87 @@ var AppComponent = (function () {
         //   } else {
         //     this.showMessage('Removed device '+"17:ED"+' with NFC tag');
         //   }
-        //   this.shelves = this.us.sortAllDevices(this);
+        //   // this.shelves = this.us.sortAllDevices(this);
         // },10000);
-        // Adding mock shelves
-        var fakeShelf1 = {
-            'shelfID': this.us.sliceShelfUUID('AB:DC'),
-            'battery': 28,
-            'weight': 54.3,
-            'temperature': this.us.celsiusToFahrenheit(2.11),
-            'humidity': '13',
-            'tempImg': this.us.getTempImgSrc(this.us.celsiusToFahrenheit(2.11)),
-            'batteryImg': this.us.getBatteryImgSrc(28),
-            'favorite': false,
-            'favImg': this.us.getFavIconImg(false)
-        };
-        var fakeShelf2 = {
-            'shelfID': this.us.sliceShelfUUID('1B:CS'),
-            'battery': 98,
-            'weight': 34.3,
-            'temperature': this.us.celsiusToFahrenheit(-2.04),
-            'humidity': '22',
-            'tempImg': this.us.getTempImgSrc(this.us.celsiusToFahrenheit(-2.04)),
-            'batteryImg': this.us.getBatteryImgSrc(98),
-            'favorite': false,
-            'favImg': this.us.getFavIconImg(false)
-        };
-        var fakeShelf3 = {
-            'shelfID': this.us.sliceShelfUUID('TS:CW'),
-            'battery': 11,
-            'weight': 13.3,
-            'temperature': this.us.celsiusToFahrenheit(22.11),
-            'humidity': '65',
-            'tempImg': this.us.getTempImgSrc(this.us.celsiusToFahrenheit(22.11)),
-            'batteryImg': this.us.getBatteryImgSrc(11),
-            'favorite': false,
-            'favImg': this.us.getFavIconImg(false)
-        };
-        var fakeShelf4 = {
-            'shelfID': this.us.sliceShelfUUID('BS:IU'),
-            'battery': 44,
-            'weight': 10.3,
-            'temperature': this.us.celsiusToFahrenheit(1.11),
-            'humidity': '87',
-            'tempImg': this.us.getTempImgSrc(this.us.celsiusToFahrenheit(1.11)),
-            'batteryImg': this.us.getBatteryImgSrc(44),
-            'favorite': false,
-            'favImg': this.us.getFavIconImg(false)
-        };
-        var fakeShelf5 = {
-            'shelfID': this.us.sliceShelfUUID('F2:4G'),
-            'battery': 66,
-            'weight': 14.3,
-            'temperature': this.us.celsiusToFahrenheit(7.7),
-            'humidity': '32',
-            'tempImg': this.us.getTempImgSrc(this.us.celsiusToFahrenheit(7.7)),
-            'batteryImg': this.us.getBatteryImgSrc(66),
-            'favorite': false,
-            'favImg': this.us.getFavIconImg(false)
-        };
-        var fakeShelves = [fakeShelf1, fakeShelf2, fakeShelf3, fakeShelf4, fakeShelf5];
-        var i = 0;
-        var addShelves = setInterval(function () {
-            if (i < 5) {
-                _this.us.updateShelves(_this, fakeShelves[i]);
-                i++;
-            }
-            else {
-                clearInterval(addShelves);
-            }
-        }, 4000);
-        // var stored = [fakeShelf4.shelfID, '17:ED'];
+        // // Adding mock shelves
+        // var fakeShelf1 = {
+        //   'shelfID': this.us.sliceShelfUUID('AB:DC'),
+        //   'battery': 28,
+        //   'weight': 54.3,
+        //   'temperature': this.us.celsiusToFahrenheit(2.11),
+        //   'humidity': '13',
+        //   'tempImg': this.us.getTempImgSrc(2.11),
+        //   'batteryImg': this.us.getBatteryImgSrc(28),
+        //   'favorite': false,
+        //   'favImg': this.us.getFavIconImg(false)
+        // };
+        //
+        // var fakeShelf2 = {
+        //   'shelfID': this.us.sliceShelfUUID('1B:CS'),
+        //   'battery': 98,
+        //   'weight': 34.3,
+        //   'temperature': this.us.celsiusToFahrenheit(-2.04),
+        //   'humidity': '22',
+        //   'tempImg': this.us.getTempImgSrc(-2.04),
+        //   'batteryImg': this.us.getBatteryImgSrc(98),
+        //   'favorite': false,
+        //   'favImg': this.us.getFavIconImg(false)
+        // };
+        //
+        // var fakeShelf3 = {
+        //   'shelfID': this.us.sliceShelfUUID('TS:CW'),
+        //   'battery': 11,
+        //   'weight': 13.3,
+        //   'temperature': this.us.celsiusToFahrenheit(22.11),
+        //   'humidity': '65',
+        //   'tempImg': this.us.getTempImgSrc(22.11),
+        //   'batteryImg': this.us.getBatteryImgSrc(11),
+        //   'favorite': false,
+        //   'favImg': this.us.getFavIconImg(false)
+        // };
+        //
+        // var fakeShelf4 = {
+        //   'shelfID': this.us.sliceShelfUUID('BS:IU'),
+        //   'battery': 44,
+        //   'weight': 10.3,
+        //   'temperature': this.us.celsiusToFahrenheit(1.11),
+        //   'humidity': '87',
+        //   'tempImg': this.us.getTempImgSrc(1.11),
+        //   'batteryImg': this.us.getBatteryImgSrc(44),
+        //   'favorite': false,
+        //   'favImg': this.us.getFavIconImg(false)
+        // };
+        //
+        // var fakeShelf5 = {
+        //   'shelfID': this.us.sliceShelfUUID('F2:4G'),
+        //   'battery': 66,
+        //   'weight': 14.3,
+        //   'temperature': this.us.celsiusToFahrenheit(7.7),
+        //   'humidity': '32',
+        //   'tempImg': this.us.getTempImgSrc(7.7),
+        //   'batteryImg': this.us.getBatteryImgSrc(66),
+        //   'favorite': false,
+        //   'favImg': this.us.getFavIconImg(false)
+        // };
+        // var fakeShelves = [fakeShelf1, fakeShelf2, fakeShelf3, fakeShelf4, fakeShelf5 ];
+        //
+        // var i = 0;
+        // var addShelves = setInterval(() => {
+        //   if(i<5){
+        //     this.us.updateShelves(this, fakeShelves[i]);
+        //     i++;
+        //   } else {
+        //     clearInterval(addShelves);
+        //   }
+        // },4000);
+        // var stored = ['11:E5','83:C8'];
         // localStorage.setItem('storedShelves', JSON.stringify(stored));
         // this.storedShelves = JSON.parse(localStorage.getItem("storedShelves"));
+        // console.log(this.storedShelves);
         setInterval(function () {
         }, 100);
         // Door open/close test
-        this.doorOpened = false;
+        // this.doorOpened = false;
         // setInterval(() => {
         //   this.doorOpened = !this.doorOpened;
         // },2000);
@@ -383,19 +400,24 @@ var UtilService = (function () {
     function UtilService() {
         this.newShelf = function (event) {
             var shelfObj = {};
+            if (event.weightLbs < 0) {
+                shelfObj['weight'] = '---';
+            }
+            else {
+                shelfObj['weight'] = Math.round(event.weightLbs * 100) / 100;
+            }
             shelfObj['shelfID'] = this.sliceShelfUUID(event.id);
             shelfObj['raw'] = event.hexData;
             shelfObj['battery'] = event.battery;
-            shelfObj['weight'] = event.weightLbs;
             shelfObj['temperature'] = this.celsiusToFahrenheit(event.tempC);
             shelfObj['humidity'] = event.humidityRh;
             shelfObj['voltage'] = event.adcVoltage;
             shelfObj['tempImg'] = this.getTempImgSrc(event.tempC);
             shelfObj['batteryImg'] = this.getBatteryImgSrc(event.battery);
-            shelfObj['favImg'] = this.getFavIconImg(false);
+            // shelfObj['favImg'] = this.getFavIconImg(false);
             return shelfObj;
         };
-        this.readStoredShelves = function () {
+        this.initStoredShelves = function () {
             var storedShelves = this.readStoredDevice("storedShelves");
             var storedShelvesArray = [];
             if (storedShelves && storedShelves.length > 0) {
@@ -422,30 +444,30 @@ var UtilService = (function () {
                 }
             }
             if (shelfExists) {
-                if (obj.shelves[shelfId].saved) {
-                    UtilService_1.updateStoredShelf(obj, newShelf);
-                }
-                else {
-                    obj.shelves[shelfId] = newShelf;
-                }
+                // if (obj.shelves[shelfId].saved) {
+                //   UtilService.updateStoredShelf(obj, newShelf);
+                // } else {
+                obj.shelves[shelfId] = newShelf;
+                // }
             }
-            else {
-                newShelf['favorite'] = false;
-                obj.shelves.push(newShelf);
-            }
-            obj.shelves = this.sortAllDevices(obj);
+            // } else {
+            // newShelf['favorite'] = false;
+            // obj.shelves.push(newShelf);
+            // }
+            // obj.shelves = this.sortAllDevices(obj);
         };
         this.updateNfcAddedDevice = function (obj, uuid) {
             var shelfExists = false;
+            var shortID = this.sliceShelfUUID(uuid);
             var shelfArrayPosition;
             var status;
             var storedShelves = this.readStoredDevice("storedShelves");
             if (!storedShelves) {
                 storedShelves = [];
             }
-            if (storedShelves && storedShelves.length > 0) {
+            if (storedShelves.length > 0) {
                 for (var i = 0; i < storedShelves.length; i++) {
-                    if (storedShelves[i] == uuid) {
+                    if (storedShelves[i] == shortID) {
                         shelfExists = true;
                         shelfArrayPosition = i;
                         break;
@@ -455,36 +477,70 @@ var UtilService = (function () {
             if (shelfExists) {
                 storedShelves.splice(shelfArrayPosition, 1);
                 status = 'removed';
+                for (var j = 0; j < obj.shelves.length; j++) {
+                    if (obj.shelves[j].shelfID === shortID) {
+                        obj.shelves.splice(j, 1);
+                        break;
+                    }
+                }
             }
             else {
-                storedShelves.push(uuid);
+                storedShelves.push(shortID);
+                var storedShelf = {};
+                storedShelf['shelfID'] = storedShelves[i];
+                storedShelf['saved'] = true;
+                storedShelf['favImg'] = "";
+                storedShelf['tempImg'] = "assets/temp-unknown.png";
+                storedShelf['batteryImg'] = "assets/battUnknown.png";
+                obj.shelves.push(storedShelf);
                 status = 'added';
             }
             this.saveDevice("storedShelves", storedShelves);
-            for (var j = 0; j < obj.shelves.length; j++) {
-                if (obj.shelves[j].shelfID === uuid) {
-                    obj.shelves.splice(j, 1);
-                    break;
-                }
-            }
-            obj.storedShelves = this.readStoredShelves();
+            // obj.storedShelves = obj.shelves;
+            obj.shelves.sort(UtilService_1.sortArrayByParameter("shelfID"));
             return status;
         };
-        this.sortAllDevices = function (obj) {
-            var splittedByFavorite = UtilService_1.splitByFavorite(obj.shelves);
-            var favoritesArray = splittedByFavorite.fav;
-            var notFavoritesArray = splittedByFavorite.notFav;
-            var notStoredShelves = favoritesArray.concat(notFavoritesArray);
-            return obj.storedShelves.concat(notStoredShelves);
-        };
-        this.getFavIconImg = function (favorite) {
-            if (favorite) {
-                return "assets/favOn.png";
-            }
-            else if (!favorite) {
-                return "assets/favOff.png";
-            }
-        };
+        // static splitByFavorite = function (shelves) {
+        //   var favArray = [];
+        //   var notFavArray = [];
+        //   for(var i=0; i<shelves.length; i++){
+        //     if(!shelves[i].saved){
+        //       if(shelves[i].favorite){
+        //         favArray.push(shelves[i]);
+        //       } else {
+        //         notFavArray.push(shelves[i]);
+        //       }
+        //     }
+        //   }
+        //   favArray.sort(UtilService.sortArrayByParameter("shelfID"));
+        //   notFavArray.sort(UtilService.sortArrayByParameter("shelfID"));
+        //   return({fav: favArray, notFav: notFavArray});
+        // };
+        // sortAllDevices = function (obj) {
+        //   var splittedByFavorite = UtilService.splitByFavorite(obj.shelves);
+        //   var favoritesArray = splittedByFavorite.fav;
+        //   var notFavoritesArray = splittedByFavorite.notFav;
+        //  
+        //   var notStoredShelves = favoritesArray.concat(notFavoritesArray);
+        //   return obj.storedShelves.concat(notStoredShelves);
+        //   return obj.storedShelves;
+        // };
+        // static updateStoredShelf(obj, newShelf){
+        //   for (var i = 0; i < obj.storedShelves.length; i++) {
+        //     if (obj.storedShelves[i].shelfID == newShelf.shelfID) {
+        //       obj.storedShelves[i] = newShelf;
+        //       obj.storedShelves[i].saved = true;
+        //       obj.storedShelves[i].favImg = '';
+        //     }
+        //   }
+        // }
+        // getFavIconImg = function (favorite) {
+        //   if(favorite){
+        //     return "assets/favOn.png";
+        //   } else if(!favorite){
+        //     return "assets/favOff.png";
+        //   }
+        // };
         this.getTempImgSrc = function (temp) {
             if (temp < 0.5) {
                 return "assets/temp-min.png";
@@ -531,17 +587,11 @@ var UtilService = (function () {
         this.saveDevice = function (deviceType, data) {
             localStorage.setItem(deviceType, JSON.stringify(data));
         };
+        this.rgbToHex = function (r, g, b) {
+            return "#" + UtilService_1.componentToHex(r) + UtilService_1.componentToHex(g) + UtilService_1.componentToHex(b);
+        };
     }
     UtilService_1 = UtilService;
-    UtilService.updateStoredShelf = function (obj, newShelf) {
-        for (var i = 0; i < obj.storedShelves.length; i++) {
-            if (obj.storedShelves[i].shelfID == newShelf.shelfID) {
-                obj.storedShelves[i] = newShelf;
-                obj.storedShelves[i].saved = true;
-                obj.storedShelves[i].favImg = '';
-            }
-        }
-    };
     UtilService.sortArrayByParameter = function (property) {
         var sortOrder = 1;
         if (property[0] === "-") {
@@ -553,22 +603,9 @@ var UtilService = (function () {
             return result * sortOrder;
         };
     };
-    UtilService.splitByFavorite = function (shelves) {
-        var favArray = [];
-        var notFavArray = [];
-        for (var i = 0; i < shelves.length; i++) {
-            if (!shelves[i].saved) {
-                if (shelves[i].favorite) {
-                    favArray.push(shelves[i]);
-                }
-                else {
-                    notFavArray.push(shelves[i]);
-                }
-            }
-        }
-        favArray.sort(UtilService_1.sortArrayByParameter("shelfID"));
-        notFavArray.sort(UtilService_1.sortArrayByParameter("shelfID"));
-        return ({ fav: favArray, notFav: notFavArray });
+    UtilService.componentToHex = function (c) {
+        var hex = c.toString(16);
+        return hex.length == 1 ? "0" + hex : hex;
     };
     UtilService = UtilService_1 = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["z" /* Injectable */])(),
@@ -603,83 +640,46 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var FridgeService = (function () {
     function FridgeService(us) {
         this.us = us;
-        this.fridgeServiceSubscription = function (obj, conf, powerSubject, doorSubject, bulbSubject) {
+        this.fridgeServiceSubscription = function (obj, urlConf, powerSubject, doorSubject, bulbSubject) {
             var _this = this;
             var debug = false;
-            var bulbDevice;
-            var doorDevice;
-            var shelfDevice;
-            var storedBulb = this.us.readStoredDevice("bulbDevice");
-            var storedDoor = this.us.readStoredDevice("doorDevice");
-            if (!storedBulb) {
-                bulbDevice = conf.smartBulbUuid;
-            }
-            if (!storedDoor) {
-                doorDevice = conf.doorUuid;
-            }
-            var gatewayToken;
-            var proxyUrl;
-            if (conf.token) {
-                gatewayToken = conf.token;
+            var config;
+            if (urlConf.environment) {
+                config = obj.window.createConfig(urlConf.environment);
             }
             else {
-                gatewayToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdJZCI6NDQ4MjA2NDcwLCJnYXRld2F5SWQiOjI0Mzc1NDQ4NCwiaXNHYXRld2F5IjpmYWxzZSwiZmlsdGVyU2NhbiI6ZmFsc2UsImlhdCI6MTUxMzc3NTE1OCwiZXhwIjoxNTIwOTc1MTU4fQ.3HYINysogR_umv0VPOVREv1OoaCdjM3KpLXRtIYAoL0';
+                config = obj.window.createConfig();
+                if (urlConf.token) {
+                    config.token = urlConf.token;
+                }
+                if (urlConf.proxyUrl) {
+                    config.url = urlConf.proxyUrl;
+                }
             }
-            if (conf.url) {
-                proxyUrl = conf.url;
-            }
-            else {
-                proxyUrl = "wss://dev-proxy.blueapp.io";
-            }
-            var config = {
-                fridgeDevices: {
-                    bulb: true,
-                    meter: true,
-                    door: true,
-                    shelf: true
-                },
-                // token: conf.token,
-                // url: conf.proxyUrl,
-                url: proxyUrl,
-                token: gatewayToken,
-                doorUuid: doorDevice,
-                bulbUuid: bulbDevice
-            };
-            // Importing SmartFridge instance
-            var smartFridge = new obj.window.SmartFridge(config);
+            var smartFridge = obj.window.createSmartFridge(config);
             smartFridge.on('error', function (err) {
-                console.error(">>> SmarShelf Service Error:", err);
-                //process.exit(-1);
+                console.error(">>> SmartShelf Service Error:", err);
             });
             smartFridge.on('shelfData', function (data) {
-                console.log("SHELF DATA");
                 var newShelf = _this.us.newShelf(data);
                 _this.us.updateShelves(obj, newShelf);
             });
             smartFridge.on('scaleData', function (data) {
-                console.log("SCALE", "id:", data.id, (debug ? "" : "raw: " + data.hexData), "weight:", data.weightLbs);
             });
             smartFridge.on('doorData', function (data) {
-                console.log("DOOR", "id:", data.id, (debug ? "" : "raw: " + data.hexData), "doorOpened:", data.doorOpened);
                 doorSubject.next(data.doorOpened);
             });
             smartFridge.on('powerData', function (data) {
                 powerSubject.next(data.powerConsumptionMilliWatts / 1000);
-                console.log("POWER", "id:", data.id, "powerMilliWatts:", data.powerConsumptionMilliWatts);
             });
             smartFridge.on('bulbData', function (data) {
-                console.log("BULB", "id:", data.id, "color:", data.color);
+                var hexColor = _this.us.rgbToHex(data.color.r, data.color.g, data.color.b);
+                obj.colorPicker.setColorByHex(hexColor);
+                obj.lightOn = (hexColor != '#000000');
             });
             bulbSubject.subscribe({
                 next: function (value) {
-                    console.log('pokusavamo da pisemo ', value);
-                    console.log(obj);
-                    if (value === '#000000') {
-                        obj.lightOn = false;
-                    }
-                    else {
-                        obj.lightOn = true;
-                    }
+                    obj.lightOn = (value != '#000000');
                     smartFridge.setBulbColor(value);
                 }
             });
