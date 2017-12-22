@@ -100,7 +100,7 @@ var AppComponent = (function () {
         };
         this.checkForNfcEvent = function () {
             var _this = this;
-            this.http.get('http://localhost:4201/v1/events')
+            this.http.get('/v1/events')
                 .subscribe(function (res) {
                 console.log(res);
                 try {
@@ -205,7 +205,7 @@ var AppComponent = (function () {
             });
         };
         addPickerUserEvent();
-        if ((location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+        if (config.token === "local") {
             console.log("It's a local server!");
             this.checkForNfcEvent();
         }
