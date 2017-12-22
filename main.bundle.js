@@ -110,7 +110,7 @@ var AppComponent = (function () {
         //       ndefraw: 'D1012B5402656E7B22626C7565617070223A7B2275756964223A2264363A32613A33383A62623A31313A6535227D7D' } }
         this.checkForNfcEvent = function () {
             var _this = this;
-            this.http.get('/v1/events')
+            this.http.get('localhost:3891/v1/events')
                 .subscribe(function (res) {
                 console.log(res);
                 try {
