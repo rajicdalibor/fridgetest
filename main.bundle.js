@@ -205,10 +205,14 @@ var AppComponent = (function () {
             });
         };
         addPickerUserEvent();
-        if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && location.port === "4200") {
+        if ((location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
             console.log("It's a local server!");
             this.checkForNfcEvent();
         }
+        // if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && location.port === "4200"){
+        //   console.log("It's a local server!");
+        //   this.checkForNfcEvent();
+        // }
         // setInterval(()=> {
         //   var status = this.us.updateNfcAddedDevice(this, "17:ED");
         //   if(status == 'added'){
