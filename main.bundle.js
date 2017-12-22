@@ -98,6 +98,16 @@ var AppComponent = (function () {
                 _this.message = '';
             }, 3000);
         };
+        // ipc: PROP INDICATION nfc.event =
+        //   { status: 'readdone',
+        //     data:
+        //     { tech: 'V',
+        //       uidtype: 'NFCID2',
+        //       uid: '8D9E0703000007E0',
+        //       hasndef: 'yes',
+        //       ndefype: 'text',
+        //       ndeftext: '{"blueapp":{"uuid":"d6:2a:38:bb:11:e5"}}',
+        //       ndefraw: 'D1012B5402656E7B22626C7565617070223A7B2275756964223A2264363A32613A33383A62623A31313A6535227D7D' } }
         this.checkForNfcEvent = function () {
             var _this = this;
             this.http.get('/v1/events')
@@ -110,14 +120,29 @@ var AppComponent = (function () {
                     for (var i = 0; i < events.length; i++) {
                         if (events[i].type == "nfc.event") {
                             if (events[i].event.status == "readdone") {
-                                var uuid = events[i].event.data.uuid;
-                                var status = _this.us.updateNfcAddedDevice(_this, uuid);
-                                if (status == 'added') {
-                                    _this.showMessage("Added device " + uuid + " with NFC tag");
+                                if (events[i].event.data.hasOwnProperty('ndftext')) {
+                                    var ndftext = events[i].event.data.ndftext;
+                                    try {
+                                        var ndfObj = JSON.parse(ndftext);
+                                        if (ndfObj.hasOwnProperty('blueapp')) {
+                                            var uuidObj = ndfObj.blueapp;
+                                            if (uuidObj.hasOwnProperty('uuid')) {
+                                                var uuid = uuidObj.uuid;
+                                                var status = _this.us.updateNfcAddedDevice(_this, uuid);
+                                                if (status == 'added') {
+                                                    _this.showMessage("Added device " + uuid + " with NFC tag");
+                                                }
+                                                else {
+                                                    _this.showMessage('Removed device ' + uuid + ' with NFC tag');
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (error) {
+                                        console.warn('NFC parse error: ', error);
+                                    }
                                 }
-                                else {
-                                    _this.showMessage('Removed device ' + uuid + ' with NFC tag');
-                                }
+                                // var uuid = events[i].event.data.uuid;
                             }
                         }
                     }
@@ -205,10 +230,10 @@ var AppComponent = (function () {
             });
         };
         addPickerUserEvent();
-        if (config.token === "local") {
-            console.log("It's a local server!");
-            this.checkForNfcEvent();
-        }
+        // if (config.token === "local"){
+        console.log("It's a local server!");
+        this.checkForNfcEvent();
+        // }
         // if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && location.port === "4200"){
         //   console.log("It's a local server!");
         //   this.checkForNfcEvent();
